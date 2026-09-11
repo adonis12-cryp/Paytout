@@ -45,3 +45,56 @@ app.post('/notify', (req, res) => { console.log("NOTIFY", req.body); res.sendSta
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("PayTout live sur port", PORT));
+{
+  "name": "paytout",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  }
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayTout - Wave vers Orange, MTN, Moov</title>
+<style>
+body{font-family:Inter,sans-serif;background:#f6f8ff;margin:0}
+.header{background:white;padding:15px;text-align:center;box-shadow:0 2px 10px #0001}
+.logo{height:55px}
+.card{max-width:400px;margin:20px auto;background:white;padding:25px;border-radius:16px;box-shadow:0 10px 30px #0001}
+input,select,button{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;font-size:16px;box-sizing:border-box}
+button{background:#1a2b5c;color:white;font-weight:bold;border:none;cursor:pointer}
+button:hover{background:#ff6a00}
+.badge{background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;text-align:center;margin-bottom:15px;font-size:14px}
+.frais{color:#ff6a00;font-weight:bold;text-align:center;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="header"><img src="logo.png" class="logo"><br><b>PayTout</b> - Le pont mobile money</div>
+<div class="card">
+<div class="badge">✅ Service disponible 24h/24 Côte d'Ivoire</div>
+<label>De (Wave)</label><select><option>WAVE</option></select>
+<label>Votre numéro Wave</label><input id="numFrom" placeholder="07 07 07 07 07">
+<label>Vers</label><select id="to"><option>ORANGE MONEY</option><option>MTN MONEY</option><option>MOOV MONEY</option></select>
+<label>Numéro destinataire</label><input id="numTo" placeholder="07 08 08 08 08">
+<label>Montant (FCFA)</label><input id="amount" type="number" placeholder="10000" oninput="calc()">
+<div class="frais" id="frais">Frais 5% : 0 F - Total : 0 F</div>
+<button onclick="send()">Transférer maintenant</button>
+<p id="result" style="text-align:center;font-weight:bold"></p>
+<p style="font-size:11px;color:gray;text-align:center">Sécurisé par CinetPay • SITE_ID: paytoutci</p>
+</div>
+<script>
+function calc(){let a=document.getElementById('amount').value||0;document.getElementById('frais').innerText=`Frais 5% : ${Math.round(a*0.05)} F - Total à payer : ${Math.round(a*1.05)} F`;}
+async function send(){
+ let data={fromNum:numFrom.value,toNum:numTo.value,to:to.value,amount:amount.value};
+ result.innerText="Connexion à CinetPay...";
+ let r=await fetch('/transfer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+ let j=await r.json();
+ if(j.payment_url){ result.innerHTML=`<a href="${j.payment_url}" target="_blank" style="color:green">✅ Clique ici pour payer ${data.amount}F</a>`; window.open(j.payment_url,'_blank'); }
+ else { result.innerText=j.error||j.message; result.style.color='red'; }
+}
